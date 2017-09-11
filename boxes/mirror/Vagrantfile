@@ -1,0 +1,48 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = "centos/7"
+
+  config.ssh.forward_agent = "true"
+  config.ssh.forward_x11 = "true"
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.disk_bus = "virtio"
+    libvirt.management_network_name = "adm-lan"
+    libvirt.management_network_address = "192.168.0.0/24"
+    libvirt.nic_model_type = "virtio"
+    libvirt.graphics_type = "vnc"
+    libvirt.graphics_autoport = "yes"
+    #libvirt.graphics_port = "5901"
+    #libvirt.keymap = "de-de"
+    libvirt.graphics_ip = "0.0.0.0"
+    libvirt.video_type = "qxl"
+    libvirt.video_vram = "65536"
+    libvirt.channel :type => 'spicevmc', :target_name => 'com.redhat.spice.0', :target_type => 'virtio'
+    #libvirt.host = "localhost"
+    #libvirt.username = 'rrutkowski'
+    libvirt.storage_pool_name = "default"
+    libvirt.default_prefix = ""
+    #libvirt.connect_via_ssh = true
+  end
+
+  config.vm.define :mirror do |machine|
+    machine.vm.hostname = "mirror.adm.lan"
+
+    machine.vm.provider :libvirt do |domain|
+      domain.memory = 2048
+      domain.cpus = 2
+      domain.machine_virtual_size = 96
+      domain.nested = true
+      domain.cpu_model = 'host-model'
+    end
+  end
+
+  config.vm.provision "shell", path: "../../scripts/mirror/bootstrap.sh"
+  config.vm.provision "shell", path: "../../scripts/tools/bootstrap.sh"
+
+end
