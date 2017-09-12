@@ -4,20 +4,14 @@ if ps aux | grep "/usr/share/foreman" | grep -v grep 2> /dev/null
 then
   echo "Foreman appears to all already be installed. Exiting..."
 else
-  #sudo rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-  #sudo rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm
-  #sudo rpm -ivh http://yum.theforeman.org/releases/1.14/el7/x86_64/foreman-release.rpm
-
-  #sudo yum -y install epel-release puppetlabs-release foreman-release
   sudo yum -y update && sudo yum -y upgrade
 
-  sudo yum -y install git ansible foreman-installer libvirt-client # memcached
+  sudo yum -y install git ansible foreman-installer libvirt-client memcached
 
-#  sudo system enable memcached
-#  sudo system start memcached
+  sudo systemctl enable memcached
+  sudo systemctl start memcached
 
-  # sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-proxy --enable-puppet --enable-foreman-plugin-memcache --enable-foreman-plugin-setup --enable-foreman-plugin-tasks --enable-foreman-plugin-templates --enable-foreman-compute-libvirt
-  sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-compute-libvirt --enable-foreman-plugin-ansible --enable-foreman-plugin-bootdisk --enable-foreman-plugin-remote-execution --enable-foreman-plugin-tasks --enable-foreman-proxy --enable-puppet --enable-foreman-plugin-setup
+  sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-memcache --enable-foreman-compute-libvirt --enable-foreman-plugin-ansible --enable-foreman-plugin-bootdisk --enable-foreman-plugin-remote-execution --enable-foreman-plugin-tasks --enable-foreman-proxy --enable-puppet
 
   sudo systemctl enable firewalld
   sudo systemctl start firewalld

@@ -33,4 +33,42 @@ sudo virsh pool-define ~/pool-default.xml
 sudo virsh pool-autostart default
 sudo virsh pool-start default
 
+virsh net-destroy default
+virsh net-undefine default
+
+if [ "$(hostname -d)" == "prd.lan" ]; then
+  stage="prd"
+  lan_prefix="10.10"
+else
+  stage="dev"
+  lan_prefix="10.20"
+fi
+
+cat > /root/${stage}-lan.xml <<EOL
+<network connections='2' ipv6='yes'>
+  <name>${stage}-lan</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='virbr0' stp='on' delay='0'/>
+  <domain name='${stage}.lan'/>
+  <ip address='${lan_prefix}.0.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='${lan_prefix}.0.2' end='${lan_prefix}.0.254'/>
+    </dhcp>
+  </ip>
+</network>
+EOL
+
+virsh net-define /root/${stage}-lan.xml
+virsh net-autostart ${stage}-lan
+virsh net-start ${stage}-lan
+
+cat > /etc/sysctl.d/10-ip-forward.conf <<EOL
+net.ipv4.ip_forward = 1
+net.ipv4.conf.all.send_redirects=0
+EOL
+
 sudo cat /var/lib/puppet/ssl/certs/ca.pem
