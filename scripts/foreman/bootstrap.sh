@@ -8,7 +8,7 @@ else
   #sudo rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm
   #sudo rpm -ivh http://yum.theforeman.org/releases/1.14/el7/x86_64/foreman-release.rpm
 
-  sudo yum -y install epel-release puppetlabs-release foreman-release
+  #sudo yum -y install epel-release puppetlabs-release foreman-release
   sudo yum -y update && sudo yum -y upgrade
 
   sudo yum -y install git ansible foreman-installer libvirt-client # memcached
@@ -17,7 +17,7 @@ else
 #  sudo system start memcached
 
   # sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-proxy --enable-puppet --enable-foreman-plugin-memcache --enable-foreman-plugin-setup --enable-foreman-plugin-tasks --enable-foreman-plugin-templates --enable-foreman-compute-libvirt
-  sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-compute-libvirt --enable-foreman-plugin-ansible --enable-foreman-plugin-bootdisk --enable-foreman-plugin-dhcp-browser --enable-foreman-plugin-expire-hosts --enable-foreman-plugin-remote-execution --enable-foreman-plugin-tasks --enable-foreman-proxy --enable-puppet --enable-foreman-plugin-setup
+  sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-compute-libvirt --enable-foreman-plugin-ansible --enable-foreman-plugin-bootdisk --enable-foreman-plugin-remote-execution --enable-foreman-plugin-tasks --enable-foreman-proxy --enable-puppet --enable-foreman-plugin-setup
 
   sudo systemctl enable firewalld
   sudo systemctl start firewalld

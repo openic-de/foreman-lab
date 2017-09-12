@@ -14,10 +14,7 @@ firewall-cmd --reload
 
 cat /etc/sysctl.d/10-ip-forward.conf
 net.ipv4.ip_forward = 1
-net.ipv6.conf.default.forwarding = 1
-net.ipv6.conf.all.forwarding = 1
 net.ipv4.conf.all.send_redirects=0
-net.ipv6.conf.all.accept_ra = 2
 
 firefox import forman_dev and foreman_prd ca certificate as trusted
 about:config
@@ -41,7 +38,11 @@ server=/prd.lan/172.16.10.10 # resolve throught foreman.prd.lan server
 server=/dev.lan/172.16.20.20 # resolve throught foreman.dev.lan server
 EOL
 
-foreman_prd: virsh net-dumpxml prd-lan
+foreman-prd:
+virsh net-destroy default
+virsh net-undefine default
+
+cat > /root/prd-lan.xml <<EOL
 <network connections='2' ipv6='yes'>
   <name>prd-lan</name>
   <forward mode='nat'>
@@ -57,19 +58,23 @@ foreman_prd: virsh net-dumpxml prd-lan
       <range start='10.10.0.2' end='10.10.0.254'/>
     </dhcp>
   </ip>
-  <ip family='ipv6' address='2001:db8::1' prefix='64'>
-  </ip>
 </network>
+EOL
 
-cat /etc/sysctl.d/10-ip-forward.conf
+virsh net-define /root/prd-lan.xml
+virsh net-autostart prd-lan
+virsh net-start prd-lan
+
+cat > /etc/sysctl.d/10-ip-forward.conf <<EOL
 net.ipv4.ip_forward = 1
-net.ipv6.conf.default.forwarding = 1
-net.ipv6.conf.all.forwarding = 1
 net.ipv4.conf.all.send_redirects=0
-net.ipv6.conf.all.accept_ra = 2
+EOL
 
+foreman-dev:
+virsh net-destroy default
+virsh net-undefine default
 
-foreman_dev: virsh net-dumpxml dev-lan
+cat > /root/dev-lan.xml <<EOL
 <network connections='2' ipv6='yes'>
   <name>dev-lan</name>
   <forward mode='nat'>
@@ -88,10 +93,13 @@ foreman_dev: virsh net-dumpxml dev-lan
   <ip family='ipv6' address='2001:db8::1' prefix='64'>
   </ip>
 </network>
+EOL
 
-cat /etc/sysctl.d/10-ip-forward.conf
+virsh net-define /root/dev-lan.xml
+virsh net-autostart dev-lan
+virsh net-start dev-lan
+
+cat > /etc/sysctl.d/10-ip-forward.conf <<EOL
 net.ipv4.ip_forward = 1
-net.ipv6.conf.default.forwarding = 1
-net.ipv6.conf.all.forwarding = 1
 net.ipv4.conf.all.send_redirects=0
-net.ipv6.conf.all.accept_ra = 2
+EOL
