@@ -11,18 +11,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.forward_x11 = "true"
 
   config.vm.provider :libvirt do |libvirt|
-    libvirt.disk_bus = "virtio"
+    #libvirt.disk_bus = "virtio"
     libvirt.management_network_name = "adm-lan"
     libvirt.management_network_address = "192.168.0.0/24"
-    libvirt.nic_model_type = "virtio"
-    libvirt.graphics_type = "vnc"
-    libvirt.graphics_autoport = "yes"
+    #libvirt.nic_model_type = "virtio"
+    #libvirt.graphics_type = "vnc"
+    #libvirt.graphics_autoport = "yes"
     #libvirt.graphics_port = "5901"
     #libvirt.keymap = "de-de"
-    libvirt.graphics_ip = "0.0.0.0"
-    libvirt.video_type = "qxl"
-    libvirt.video_vram = "65536"
-    libvirt.channel :type => 'spicevmc', :target_name => 'com.redhat.spice.0', :target_type => 'virtio'
+    #libvirt.graphics_ip = "0.0.0.0"
+    #libvirt.video_type = "qxl"
+    #libvirt.video_vram = "65536"
+    #libvirt.channel :type => 'spicevmc', :target_name => 'com.redhat.spice.0', :target_type => 'virtio'
     #libvirt.host = "localhost"
     #libvirt.username = 'rrutkowski'
     libvirt.storage_pool_name = "default"
@@ -31,7 +31,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :foreman_prd do |machine|
-    machine.vm.hostname = "foreman-prd.adm.lan"
+    machine.vm.hostname = "foreman-prd.prd.lan"
 
     machine.vm.provider :libvirt do |domain|
       domain.memory = 16384
@@ -44,7 +44,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :foreman_dev do |machine|
-    machine.vm.hostname = "foreman-dev.adm.lan"
+    machine.vm.hostname = "foreman-dev.dev.lan"
 
     machine.vm.provider :libvirt do |domain|
       domain.memory = 16384

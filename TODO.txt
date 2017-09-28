@@ -5,11 +5,12 @@ firewall-cmd --permanent --new-zone=dev
 firewall-cmd --permanent --add-interface=virbr0 --zone=adm
 firewall-cmd --permanent --add-interface=virbr1 --zone=prd
 firewall-cmd --permanent --add-interface=virbr2 --zone=dev
-#firewall-cmd --permanent --add-interface=eth0 --zone=public
-#firewall-cmd --permanent --add-interface=xlcbr0 --zone=internal
+firewall-cmd --permanent --add-interface=wlp2s0 --zone=public
 firewall-cmd --permanent --zone=public --add-masquerade
-firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-is-bridged -j ACCEPT
-firewall-cmd --permanent --direct --add-rule ipv6 filter FORWARD 0 -m physdev --physdev-is-bridged -j ACCEPT
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-in virbr0 --physdev-is-bridged -j DENY
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-in virbr1 --physdev-is-bridged -j ACCEPT
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-in virbr2 --physdev-is-bridged -j ACCEPT
+
 firewall-cmd --reload
 
 cat /etc/sysctl.d/10-ip-forward.conf
@@ -34,6 +35,112 @@ EOL
 
 cat >/etc/NetworkManager/dnsmasq.d/libvirt.conf <<EOL
 server=/adm.lan/192.168.0.1 # resolve throught local kvm server
-server=/prd.lan/172.16.10.10 # resolve throught foreman.prd.lan server
-server=/dev.lan/172.16.20.20 # resolve throught foreman.dev.lan server
+server=/prd.lan/172.16.10.10 # resolve throught foreman-prd.prd.lan server
+server=/dev.lan/172.16.20.20 # resolve throught foreman-dev.dev.lan server
 EOL
+
+Initiale Einrichtung Foreman
+
+Provisioning Setup
+Wichtig! Nach der Installation fehlt noch das Provisioning Setup im Foreman.
+Bitte Starten Sie dieses unter Infrastructure -> Provisioning Setup
+Als Schnittstelle ist dort eth1 (172.16.10|20.10) zu wählen.
+Wichtig, bitte Gateway 172.16.10|20.10 eintragen und DHCP für beide Felder
+auswählen.
+
+Wichtig ist es das Provisioning Setup am Stück auszuführen, ohne längere
+Pausen, denn nach einem Time Out lässt sich der Initiale Zustand nur noch
+durch eine Neuinstallation wiederherstellen.
+
+Firefox Zertifikate + Admin Passwort
+rrutkowski  …  foreman-lab  boxes  foreman  vagrant ssh foreman_dev
+sudo su -
+root  ~  cat /var/lib/puppet/ssl/ca/ca_crt.pem
+
+Damit erhält man das Zertifikat, dieses muss als trusted certificate authority
+im Firefox importiert werden.
+
+Um das Passwort vom Foreman zu resetten können Sie folgendes aufrufen:
+
+foreman-rake permission:reset
+
+Das neue Passwort ist sofort gültig und wird auf der Konsole ausgegeben.
+
+Compute Resource
+
+Unter dem Menüpunkt Infrastructure -> Compute Resource eine neue Resource
+anlegen.
+
+Der Name ist dev-kvm-local oder prd-kvm-local. Als Provider wählen Sie
+bitte libvirt aus.
+
+Da wir die lokale KVM Instanz verwenden werden, geben wir für die URL
+qemu:///system an.
+
+Durch den Test Connection Knopf wird die Verbindung getestet und ein erfolgreiche
+Verbindung durch einen grünen Popup angezeigt. Dann kann die Anlage der Resource
+bestätigt werden.
+
+Puppet Environment anlegen und Module aus Produktion kopieren
+Wird ein neues Puppetmodul installiert, ohne dass ein Environment angegeben wurde,
+konfiguriert Puppet dieses Modul in das Produktionsenvironment. So kommt es auch,
+das alle Module, die während der Installation konfiguriert wurden, im Produktionsenvironment
+liegen.
+
+rrutkowski  …  foreman-lab  boxes  foreman  vagrant ssh foreman_dev
+sudo su -
+root  ~  cd /etc/puppet/environments/
+
+rm development example_env
+cp -rp production development
+
+Hiermit wird sichergestellt, das zu Beginn die installierten Module in Produktion und in der
+Entwicklung identisch sind.
+
+Damit diese Änderung im Puppet auch sofort sichtbar wird, muss das neue Environment und die
+neuen Module in Foreman importiert werden.
+
+Hierzu ruft man den Menüpunkt Configure -> Environments auf und drückt "Import environments from ...".
+Das gleiche macht man nun nochmal mit Configure -> Classes und wartet bis der Import abgeschlossen ist.
+Bei neueren Foreman Versionen reicht bereits der Import der Environments, da diese dann auch die Puppet
+Classes aktualisieren.
+
+ip address show dev eth1 | awk '$1=="link/ether" {print $2}'
+52:54:00:15:46:53
+
+/etc/sysctl.d/bridge.conf with these contents:
+
+net.bridge.bridge-nf-call-iptables=0
+net.bridge.bridge-nf-call-arptables=0
+
+/etc/udev/rules.d/99-bridge.rules:
+ACTION=="add", SUBSYSTEM=="module", KERNEL=="bridge", RUN+="/sbin/sysctl -p /etc/sysctl.d/bridge.conf"
+
+vi /etc/sysconfig/network-scripts/ifcfg-eth1
+NM_CONTROLLED=no
+BRIDGE=br0
+
+vi /etc/sysconfig/network-scripts/ifcfg-br0
+# If unsure what NETMASK, GATEWAY or IPV6_DEFAULTGW should be, check the
+# original copy of ifcfg-eth0 or ask your hosting provider.
+
+DEVICE=br0
+NAME=br0
+# Change to 'no' to disable NetworkManager for this interface.
+NM_CONTROLLED=yes
+ONBOOT=yes
+TYPE=Bridge
+# If you want to turn on Spanning Tree Protocol, ask your hosting
+# provider first as it may conflict with their network.
+STP=off
+# If STP is off, set to 0. If STP is on, set to 2 (or greater).
+DELAY=0
+
+IPADDR=172.16.20.10
+NETMASK=255.255.255.0
+GATEWAY=172.16.20.10
+
+nmcli connection reload
+nmcli connection down "System eth1" && nmcli connection up "System eth1"
+
+ip link set down eth1 && ip link set up eth1 && ip link set up br0

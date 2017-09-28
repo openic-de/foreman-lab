@@ -1,7 +1,7 @@
 <network>
   <name>prd-lan</name>
+  <forward mode="route"/>
   <bridge name='virbr1' stp='on' delay='0' />
   <domain name='prd.lan' localOnly='yes'/>
-  <forward mode='nat'/>
   <ip address='172.16.10.1' netmask='255.255.255.0' />
 </network>

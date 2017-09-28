@@ -11,14 +11,16 @@ else
   sudo systemctl enable memcached
   sudo systemctl start memcached
 
-  sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-memcache --enable-foreman-compute-libvirt --enable-foreman-plugin-ansible --enable-foreman-plugin-bootdisk --enable-foreman-plugin-remote-execution --enable-foreman-plugin-tasks --enable-foreman-proxy --enable-puppet
+  sudo foreman-installer --enable-foreman --enable-foreman-cli --enable-foreman-plugin-memcache --enable-foreman-compute-libvirt --enable-foreman-plugin-ansible --enable-foreman-plugin-bootdisk --enable-foreman-plugin-remote-execution --enable-foreman-plugin-tasks --enable-foreman-proxy --enable-puppet
+
+  sudo localectl set-keymap de-latin1-nodeadkeys
+  sudo localectl set-locale "de_DE.UTF-8"
 
   sudo systemctl enable firewalld
   sudo systemctl start firewalld
-  sudo firewall-cmd --permanent --add-interface=virbr0 --zone=trusted
-  sudo firewall-cmd --permanent --add-interface=eth0 --zone=public
-  sudo firewall-cmd --permanent --zone=public --add-masquerade
-  sudo firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-is-bridged -j ACCEPT
+  sudo firewall-cmd --permanent --add-interface=eth0 --zone=trusted
+  sudo firewall-cmd --permanent --add-interface=eth1 --zone=public
+  sudo firewall-cmd --permanent --add-interface=virbr0 --zone=public
 
   sudo firewall-cmd --reload
 
