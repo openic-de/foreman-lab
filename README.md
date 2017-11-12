@@ -21,12 +21,15 @@ virsh net-undefine default
 
 virsh net-define boxes/setup/virsh/net-define_adm-lan.xml
 virsh net-start adm-lan
+virsh net-autostart adm-lan
 
 virsh net-define boxes/setup/virsh/net-define_prd-lan.xml
 virsh net-start prd-lan
+virsh net-autostart prd-lan
 
 virsh net-define boxes/setup/virsh/net-define_dev-lan.xml
 virsh net-start dev-lan
+virsh net-autostart dev-lan
 ```
 
 * Create firewall zones and allow unfiltered access to the bridge interfaces
