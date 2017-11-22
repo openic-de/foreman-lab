@@ -64,6 +64,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ssh_public_key = File.readlines("#{Dir.home}/.ssh/id_rsa.pub").first.strip
     s.inline = <<-SHELL
       echo #{ssh_public_key} >> /home/vagrant/.ssh/authorized_keys
+      mkdir -p /usr/share/foreman/.ssh
       chown -R foreman:foreman /usr/share/foreman/.ssh
       chmod -R go-rwx /usr/share/foreman/.ssh
     SHELL

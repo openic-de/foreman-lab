@@ -5,8 +5,11 @@ then
   echo "Foreman appears to all already be installed. Exiting..."
 else
   sudo yum -y update && sudo yum -y upgrade
+  sudo yum -y install yum-utils
+  sudo yum-config-manager --enable rhel-7-server-optional-rpms rhel-server-rhscl-7-rpms
 
-  sudo yum -y install git ansible foreman-installer libvirt-client memcached
+  sudo yum -y update && sudo yum -y upgrade
+  sudo yum -y install ansible puppetserver puppetdb libvirt-client memcached foreman-installer
 
   sudo systemctl enable memcached
   sudo systemctl start memcached
