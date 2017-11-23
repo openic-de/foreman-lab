@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-sudo cd /var/www/html/repos/centos && wget http://vault.centos.org/RPM-GPG-KEY-CentOS-7
-
 sudo cat >/etc/yum.repos.d/CentOS-Base.repo <<EOL
 [base]
 name=CentOS-7 - Base
