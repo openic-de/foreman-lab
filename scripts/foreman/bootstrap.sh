@@ -5,11 +5,12 @@ then
   echo "Foreman appears to all already be installed. Exiting..."
 else
   sudo yum -y update && sudo yum -y upgrade
-  sudo yum -y install yum-utils wget
   sudo yum-config-manager --enable rhel-7-server-optional-rpms rhel-server-rhscl-7-rpms
+  sudo gpg --recive-keys 897740e9 897740e9 ef8d349f 352c64e5 4BD6EC30 EF8D349F 8347A27F F4A80EB5 352c64e5
+  sudo yum -y install gpg yum-utils wget puppet ansible libvirt-client memcached
 
   sudo yum -y update && sudo yum -y upgrade
-  sudo yum -y install ansible puppet libvirt-client memcached foreman-installer
+  sudo yum -y install foreman-installer
 
   sudo systemctl enable memcached
   sudo systemctl start memcached
@@ -41,18 +42,18 @@ else
 
   sudo firewall-cmd --reload
 
-  sudo puppet agent --test --waitforcert=60
-  sudo puppet module install -i /etc/puppet/environments/production/modules puppetlabs-ntp
-  sudo puppet module install -i /etc/puppet/environments/production/modules puppetlabs-git
-  sudo puppet module install -i /etc/puppet/environments/production/modules puppetlabs-vcsrepo
-  sudo puppet module install -i /etc/puppet/environments/production/modules jfryman-nginx
-  sudo puppet module install -i /etc/puppet/environments/production/modules puppetlabs-haproxy
-  sudo puppet module install -i /etc/puppet/environments/production/modules puppetlabs-apache
-  sudo puppet module install -i /etc/puppet/environments/production/modules puppetlabs-java
-  sudo puppet module install -i /etc/puppet/environments/production/modules deric/zookeeper
-  sudo puppet module install -i /etc/puppet/environments/production/modules puppet/kafka
-  sudo puppet module install -i /etc/puppet/environments/production/modules elastic/elasticsearch
-  sudo puppet module install -i /etc/puppet/environments/production/modules elastic/logstash
+  sudo /opt/puppetlabs/bin/puppet agent --test --waitforcert=60
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules puppetlabs-ntp
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules puppetlabs-git
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules puppetlabs-vcsrepo
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules jfryman-nginx
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules puppetlabs-haproxy
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules puppetlabs-apache
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules puppetlabs-java
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules deric/zookeeper
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules puppet/kafka
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules elastic/elasticsearch
+  sudo /opt/puppetlabs/bin/puppet module install -i /etc/puppet/environments/production/modules elastic/logstash
 
   sudo yum -y install qemu-kvm qemu-img virt-manager libvirt libvirt-python libvirt-client virt-install virt-viewer dejavu-lgc-sans-fonts xauth
 
@@ -61,6 +62,8 @@ else
   sudo usermod -a -G libvirt foreman
   sudo usermod -a -G qemu foreman
   sudo usermod -a -G libvirt vagrant
+  sudo usermod -a -G qemu vagrant
+  touch ~/.Xauthorityvagrant
   sudo usermod -a -G qemu vagrant
   touch ~/.Xauthority
 fi
