@@ -23,21 +23,20 @@ else
   sudo systemctl enable firewalld
   sudo systemctl start firewalld
   sudo firewall-cmd --permanent --add-interface=eth0 --zone=trusted
+  sudo firewall-cmd --permanent --zone=trusted --set-target=ACCEPT
   sudo firewall-cmd --permanent --add-interface=eth1 --zone=public
   sudo firewall-cmd --permanent --add-interface=virbr0 --zone=public
+  sudo firewall-cmd --permanent --zone=public --set-target=DROP
 
   sudo firewall-cmd --reload
 
-  sudo firewall-cmd --permanent --add-port=53/tcp # dns server
-  sudo firewall-cmd --permanent --add-port=53/udp # dns server
-  sudo firewall-cmd --permanent --add-port=67-69/udp # dhcp + tftp server
-  sudo firewall-cmd --permanent --add-port=69/tcp # tftp server
+  sudo firewall-cmd --permanent --add-service=dns # dns server
+  sudo firewall-cmd --permanent --add-service=dhcp # dhcp server
+  sudo firewall-cmd --permanent --add-service=tftp # dhcp server
   sudo firewall-cmd --permanent --add-service=http # Foreman Web UI
   sudo firewall-cmd --permanent --add-service=https # Foreman Web UI
-  sudo firewall-cmd --permanent --add-port=80/tcp # Foreman Web UI
-  sudo firewall-cmd --permanent --add-port=443/tcp # Foreman Web UI
-  sudo firewall-cmd --permanent --add-port=5910-5930/tcp # VNC Consoles
-  sudo firewall-cmd --permanent --add-port=8140/tcp # Puppet Master
+  sudo firewall-cmd --permanent --add-service=vnc-server # Foreman Web UI
+  sudo firewall-cmd --permanent --add-service=puppet-master # Foreman Web UI
   sudo firewall-cmd --permanent --add-port=8443/tcp # Smart Proxy, open only to foreman
 
   sudo firewall-cmd --reload
@@ -66,4 +65,8 @@ else
   touch ~/.Xauthorityvagrant
   sudo usermod -a -G qemu vagrant
   touch ~/.Xauthority
+  sudo systemctl enable httpd
+  sudo systemctl start httpd
+  sudo systemctl enable foreman-proxy
+  sudo systemctl start foreman-proxy
 fi

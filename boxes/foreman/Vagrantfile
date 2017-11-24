@@ -30,7 +30,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #libvirt.connect_via_ssh = true
   end
 
-  config.vm.define :foreman_prd do |machine|
+  config.vm.define "foreman-prd" do |machine|
     machine.vm.hostname = "foreman-prd.prd.lan"
 
     machine.vm.provider :libvirt do |domain|
@@ -43,7 +43,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     machine.vm.network :public_network, :ip => "172.16.10.10", :dev => "virbr1", :mode => "bridge", :type => "bridge", :network_name => "prd-lan"
   end
 
-  config.vm.define :foreman_dev do |machine|
+  config.vm.define "foreman-dev" do |machine|
     machine.vm.hostname = "foreman-dev.dev.lan"
 
     machine.vm.provider :libvirt do |domain|
