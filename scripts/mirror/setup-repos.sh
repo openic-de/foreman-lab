@@ -125,31 +125,31 @@ EOL
 
 sudo cat >/etc/yum.repos.d/foreman.repo <<EOL
 [foreman]
-name=Foreman 1.15
-baseurl=http://mirror/theforeman/releases/1.15/el7/x86_64
+name=Foreman 1.16
+baseurl=http://mirror/theforeman/releases/1.16/el7/x86_64
 enabled=1
 gpgcheck=1
-gpgkey=http://mirror/theforeman/releases/1.15/RPM-GPG-KEY-foreman
+gpgkey=http://mirror/theforeman/releases/1.16/RPM-GPG-KEY-foreman
 
 [foreman-source]
-name=Foreman 1.15 - source
-baseurl=http://mirror/theforeman/releases/1.15/el7/source
+name=Foreman 1.16 - source
+baseurl=http://mirror/theforeman/releases/1.16/el7/source
 enabled=0
 gpgcheck=1
-gpgkey=http://mirror/theforeman/releases/1.15/RPM-GPG-KEY-foreman
+gpgkey=http://mirror/theforeman/releases/1.16/RPM-GPG-KEY-foreman
 EOL
 
 sudo cat >/etc/yum.repos.d/foreman-plugins.repo <<EOL
 [foreman-plugins]
-name=Foreman plugins 1.15
-baseurl=http://mirror/theforeman/plugins/1.15/el7/x86_64
+name=Foreman plugins 1.16
+baseurl=http://mirror/theforeman/plugins/1.16/el7/x86_64
 enabled=1
-gpgcheck=1
+gpgcheck=0
 gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman
 
 [foreman-plugins-source]
-name=Foreman plugins 1.15 - source
-baseurl=http://mirror/theforeman/plugins/1.15/el7/source
+name=Foreman plugins 1.16 - source
+baseurl=http://mirror/theforeman/plugins/1.16/el7/source
 enabled=0
 gpgcheck=1
 gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman
