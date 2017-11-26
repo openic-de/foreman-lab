@@ -20,7 +20,6 @@ fi
 EOL
 
 log-execute "git clone https://github.com/amix/vimrc.git ~/.vim_runtime" "git: cloning amix vimrc"
-log-execute "mkdir ~/.vim_runtime" "ensure vim runtime directory exists"
 log-execute ". ~/.vim_runtime/install_awesome_vimrc.sh" "sourcing amix awesome vimrc"
 
 log-progress-nl "setting up .vimrc"

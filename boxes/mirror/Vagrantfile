@@ -42,7 +42,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
-  config.vm.provision "shell", path: "scripts/bootstrap.sh"
+  config.vm.provision "shell", path: "setup/bootstrap.sh"
 
   components=['tools']
 
@@ -53,7 +53,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
-  config.vm.provision "shell", path: "scripts/postinstall.sh"
+  config.vm.provision "shell", path: "setup/postinstall.sh"
 
   components.each do |component|
     config.vm.provision "shell" do |command|
