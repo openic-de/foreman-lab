@@ -8,7 +8,7 @@ log-execute "sudo yum -y install git python-pip vim-enhanced tmux python-pip" "i
 log-execute "sudo pip install --upgrade pip" "pip: upgrading system"
 log-execute "sudo pip install powerline-status" "installing powerline-status"
 
-suod cat >/etc/profile.d/powerline-status.sh <<EOL
+sudo cat >/etc/profile.d/powerline-status.sh <<EOL
 #!/usr/bin/env bash
 
 if [ -f `which powerline-daemon` ]; then

@@ -12,7 +12,7 @@ log-execute "sudo firewall-cmd --permanent --add-interface=eth0 --zone=trusted" 
 log-execute "sudo firewall-cmd --permanent --zone=trusted --set-target=ACCEPT" "firewalld: setting trusted zone target on ACCEPT"
 log-execute "sudo firewall-cmd --permanent --add-interface=eth1 --zone=public" "firewalld: setting interface eth1 zone on public"
 log-execute "sudo firewall-cmd --permanent --add-interface=virbr0 --zone=public" "firewalld: setting interface virbr0 zone on public"
-log-execute "sudo firewall-cmd --permanent --zone=public --set-target=DROP" "firewalld: setting public zone target on DROP"
+log-execute "sudo firewall-cmd --permanent --zone=public --set-target=ACCEPT" "firewalld: setting public zone target on ACCEPT"
 
 log-execute "sudo firewall-cmd --reload" "firewalld: reloading configuration"
 

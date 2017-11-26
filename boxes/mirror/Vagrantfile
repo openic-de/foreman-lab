@@ -40,25 +40,24 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.nested = true
       domain.cpu_model = 'host-model'
     end
+    machine.vm.synced_folder("./vagrant", "/vagrant", type: 'rsync')
   end
 
-  config.vm.provision "shell", path: "setup/bootstrap.sh"
+  config.vm.provision "shell" do |command|
+    command.path = "../shared/setup/common.sh"
+    command.upload_path = "/tmp/common.sh"
+  end
 
+  phases=['bootstrap', 'postinstall']
   components=['tools']
 
-  components.each do |component|
-    config.vm.provision "shell" do |command|
-      command.path = "../shared/setup/#{component}-bootstrap.sh"
-      command.args = ["#{component}", "#{hostname}"]
-    end
-  end
-
-  config.vm.provision "shell", path: "setup/postinstall.sh"
-
-  components.each do |component|
-    config.vm.provision "shell" do |command|
-      command.path = "../shared/setup/#{component}-postinstall.sh"
-      command.args = ["#{component}", "#{hostname}"]
+  phases.each do |phase|
+    config.vm.provision "shell", path: "setup/#{phase}.sh"
+    components.each do |component|
+      config.vm.provision "shell" do |command|
+        command.path = "../shared/setup/#{component}/#{phase}.sh"
+        command.args = ["#{phase}", "#{component}"]
+      end
     end
   end
 

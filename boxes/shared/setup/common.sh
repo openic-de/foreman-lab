@@ -3,6 +3,7 @@
 phase=${1}
 component=${2}
 hostname=$(hostname -s)
+domainname=$(hostname -d)
 
 function log {
   message=${1}
@@ -16,12 +17,12 @@ function log-nl {
 
 function log-progress {
   message=${1}
-  log "${phase} ${component} on ${hostname} - ${message}"
+  log "${phase} ${component}: ${message}"
 }
 
 function log-progress-nl {
   message=${1}
-  log-nl "${phase} ${component} on ${hostname} - ${message}"
+  log-nl "${phase} ${component}: ${message}"
 }
 
 utilities="parallel coreutils findutils patchutils"
