@@ -1,5 +1,5 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+# -*- mode: sync.rb -*-
+# vi: set ft=sync.rb :
 
 VAGRANTFILE_API_VERSION = "2"
 
@@ -42,7 +42,24 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
-  config.vm.provision "shell", path: "../../scripts/mirror/bootstrap.sh"
-  config.vm.provision "shell", path: "../../scripts/tools/bootstrap.sh"
+  config.vm.provision "shell", path: "scripts/bootstrap.sh"
+
+  components=['tools']
+
+  components.each do |component|
+    config.vm.provision "shell" do |command|
+      command.path = "../shared/setup/#{component}-bootstrap.sh"
+      command.args = ["#{component}", "#{hostname}"]
+    end
+  end
+
+  config.vm.provision "shell", path: "scripts/postinstall.sh"
+
+  components.each do |component|
+    config.vm.provision "shell" do |command|
+      command.path = "../shared/setup/#{component}-postinstall.sh"
+      command.args = ["#{component}", "#{hostname}"]
+    end
+  end
 
 end

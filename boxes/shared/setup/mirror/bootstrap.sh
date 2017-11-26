@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+source /tmp/common.sh
+
+log-progress-nl "begin"
+
+log-progress-nl "setting up CentOS-Base repository"
 sudo cat >/etc/yum.repos.d/CentOS-Base.repo <<EOL
 [base]
 name=CentOS-7 - Base
@@ -31,6 +36,7 @@ enabled=1
 gpgkey=http://mirror/centos/RPM-GPG-KEY-CentOS-7
 EOL
 
+log-progress-nl "setting up epel repository"
 sudo cat >/etc/yum.repos.d/epel.repo <<EOL
 [epel]
 name=Extra Packages for Enterprise Linux 7 - x86_64
@@ -48,6 +54,7 @@ gpgcheck=1
 
 EOL
 
+log-progress-nl "setting up puppetlabs repository"
 sudo cat >/etc/yum.repos.d/puppetlabs.repo <<EOL
 [puppetlabs-products]
 name=Puppet Labs Products El 7 - x86_64
@@ -123,6 +130,7 @@ enabled=0
 gpgcheck=1
 EOL
 
+log-progress-nl "setting up foreman repository"
 sudo cat >/etc/yum.repos.d/foreman.repo <<EOL
 [foreman]
 name=Foreman 1.16
@@ -139,6 +147,7 @@ gpgcheck=1
 gpgkey=http://mirror/theforeman/releases/1.16/RPM-GPG-KEY-foreman
 EOL
 
+log-progress-nl "setting up foreman-plugins repository"
 sudo cat >/etc/yum.repos.d/foreman-plugins.repo <<EOL
 [foreman-plugins]
 name=Foreman plugins 1.16
@@ -154,3 +163,5 @@ enabled=0
 gpgcheck=1
 gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman
 EOL
+
+log-progress-nl "done"

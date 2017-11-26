@@ -4,6 +4,7 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
   config.vm.box = "centos/7"
 
   config.ssh.forward_agent = "true"
@@ -29,11 +30,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #libvirt.connect_via_ssh = true
   end
 
-  phases=['bootstrap', 'postinstall']
-  components=['mirror', 'libvirt', 'docker-ce', 'foreman', 'tools']
-
-  config.vm.define "foreman-prd" do |machine|
-    machine.vm.hostname = "foreman-prd.prd.lan"
+  config.vm.define :jenkins do |machine|
+    machine.vm.hostname = "jenkins.adm.lan"
 
     machine.vm.provider :libvirt do |domain|
       domain.memory = 8192
@@ -42,26 +40,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.nested = true
       domain.cpu_model = 'host-model'
     end
-    machine.vm.network :public_network, :ip => "172.16.10.10", :dev => "virbr1", :mode => "bridge", :type => "bridge", :network_name => "prd-lan"
-  end
 
-  config.vm.define "foreman-dev" do |machine|
-    machine.vm.hostname = "foreman-dev.dev.lan"
-
-    machine.vm.provider :libvirt do |domain|
-      domain.memory = 8192
-      domain.cpus = 4
-      domain.machine_virtual_size = 64
-      domain.nested = true
-      domain.cpu_model = 'host-model'
-    end
-    machine.vm.network :public_network, :ip => "172.16.20.10", :dev => "virbr2", :mode => "bridge", :type => "bridge", :network_name => "dev-lan"
+    machine.vm.synced_folder("./vagrant", "/vagrant", type: 'rsync')
+    machine.vm.network :public_network, :ip => "192.168.0.10", :dev => "virbr0", :mode => "bridge", :type => "bridge", :network_name => "adm-lan"
   end
 
   config.vm.provision "shell" do |command|
     command.path = "../shared/setup/common.sh"
     command.upload_path = "/tmp/common.sh"
   end
+
+  phases=['bootstrap', 'postinstall']
+  components=['mirror', 'jenkins', 'tools']
 
   phases.each do |phase|
     config.vm.provision "shell", path: "setup/#{phase}.sh"
