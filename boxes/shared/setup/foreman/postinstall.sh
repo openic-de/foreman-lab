@@ -5,6 +5,8 @@ source /tmp/common.sh
 log-progress-nl "begin"
 
 # kvm + libvirt
+log-execute "sudo usermod -a -G libvirt foreman" "allow foreman to access libvirt"
+
 sudo chown -R foreman:foreman /usr/share/foreman
 #sudo -u foreman ssh foreman@kvm.adm.lan "echo kvm public key distribution successful."
 #sudo -u foreman virsh -c qemu+ssh://foreman@kvm.adm.lan/system list

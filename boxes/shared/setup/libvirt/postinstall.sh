@@ -5,7 +5,7 @@ source /tmp/common.sh
 log-progress-nl "begin"
 
 log-progress-nl "setting up default pool configuration"
-cat >~/pool-default.xml <<EOL
+cat >/root/pool-default.xml <<EOL
 <pool type='dir'>
   <name>default</name>
   <source>
@@ -22,7 +22,7 @@ cat >~/pool-default.xml <<EOL
 </pool>
 EOL
 
-log-execute "sudo virsh pool-define ~/pool-default.xml" "setting up default pool"
+log-execute "sudo virsh pool-define /root/pool-default.xml" "setting up default pool"
 log-execute "sudo virsh pool-autostart default" "setting default pool to autostart"
 log-execute "sudo virsh pool-start default" "starting default pool"
 

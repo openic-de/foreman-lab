@@ -93,7 +93,7 @@ EOL
 cat >/etc/NetworkManager/dnsmasq.d/libvirt.conf <<EOL
 server=/adm.lan/192.168.0.1 # resolve throught local kvm server
 server=/prd.lan/172.16.10.10 # resolve throught foreman-prd.prd.lan server
-server=/dev.lan/172.16.20.20 # resolve throught foreman-dev.dev.lan server
+server=/dev.lan/172.16.20.10 # resolve throught foreman-dev.dev.lan server
 EOL
 ```
 
