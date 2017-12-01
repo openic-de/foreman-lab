@@ -36,9 +36,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     machine.vm.hostname = "foreman-prd.prd.lan"
 
     machine.vm.provider :libvirt do |domain|
-      domain.memory = 8192
-      domain.cpus = 4
-      domain.machine_virtual_size = 64
+      domain.memory = 16384
+      domain.cpus = 8
+      domain.machine_virtual_size = 128
       domain.nested = true
       domain.cpu_model = 'host-model'
     end
@@ -50,9 +50,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     machine.vm.hostname = "foreman-dev.dev.lan"
 
     machine.vm.provider :libvirt do |domain|
-      domain.memory = 8192
-      domain.cpus = 4
-      domain.machine_virtual_size = 64
+      domain.memory = 16384
+      domain.cpus = 8
+      domain.machine_virtual_size = 128
       domain.nested = true
       domain.cpu_model = 'host-model'
     end

@@ -12,7 +12,7 @@ log-execute "sudo yum -y install git createrepo firewalld rsync nginx" "installi
 log-execute "mkdir -p /var/www/html/repos/centos/7/{os/x86_64,updates/x86_64,extras/x86_64,centosplus/x86_64}" "setting up centos repository directories"
 log-execute "mkdir -p /var/www/html/repos/epel/7/x86_64" "setting up epel repository directories"
 log-execute "mkdir -p /var/www/html/repos/puppetlabs/el/7/{products/x86_64,dependencies/x86_64,devel/x86_64,PC1/x86_64}" "setting up puppetlabs repository directories"
-log-execute "mkdir -p /var/www/html/repos/theforeman/{releases/1.16/el7/x86_64,plugins/1.16/el7/x86_64}" "setting up foreman repository directories"
+log-execute "mkdir -p /var/www/html/repos/theforeman/{releases/1.15/el7/x86_64,plugins/1.15/el7/x86_64}" "setting up foreman repository directories"
 
 log-execute "createrepo /var/www/html/repos/centos/7/os/x86_64/" "createrepo centos os"
 log-execute "createrepo /var/www/html/repos/centos/7/updates/x86_64/" "createrepo centos updates"
@@ -23,8 +23,8 @@ log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/products/x86_64" "cr
 log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/dependencies/x86_64" "createrepo puppetlabs dependencies"
 log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/devel/x86_64" "createrepo puppetlabs devel"
 log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/PC1/x86_64" "createrepo puppetlabs PC1"
-log-execute "createrepo /var/www/html/repos/theforeman/releases/1.16/el7/x86_64" "createrepo puppetlabs foreman releases"
-log-execute "createrepo /var/www/html/repos/theforeman/plugins/1.16/el7/x86_64" "createrepo puppetlabs foreman plugins"
+log-execute "createrepo /var/www/html/repos/theforeman/releases/1.15/el7/x86_64" "createrepo puppetlabs foreman releases"
+log-execute "createrepo /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64" "createrepo puppetlabs foreman plugins"
 
 log-execute "mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig" "backup nginx configuration"
 
@@ -76,41 +76,53 @@ log-progress-nl "setting up sync mirror script"
 cat >~/sync-mirror.sh <<EOL
 #!/bin/bash
 
-rsync -avz --exclude='repo*' rsync://mirror.netcologne.de/centos/7/os/x86_64/ /var/www/html/repos/centos/7/os/x86_64/ &
-rsync -avz --exclude='repo*' rsync://mirror.netcologne.de/centos/7/updates/x86_64/ /var/www/html/repos/centos/7/updates/x86_64/ &
-rsync -avz --exclude='repo*' rsync://mirror.netcologne.de/centos/7/extras/x86_64/ /var/www/html/repos/centos/7/extras/x86_64/ &
-rsync -avz --exclude='repo*' rsync://mirror.netcologne.de/centos/7/centosplus/x86_64/ /var/www/html/repos/centos/7/centosplus/x86_64/ &
 #---------
-rsync -avz --exclude='repo*' --exclude='debug' rsync://mirror.netcologne.de/fedora-epel/7/x86_64/ /var/www/html/repos/epel/7/x86_64/ &
+reposync --gpgcheck -l --repoid=base --download_path=/var/www/html/repos/centos/7 --downloadcomps --download-metadata &
+reposync --gpgcheck -l --repoid=centosplus --download_path=/var/www/html/repos/centos/7 --downloadcomps --download-metadata &
+reposync --gpgcheck -l --repoid=extras --download_path=/var/www/html/repos/centos/7 --downloadcomps --download-metadata &
+reposync --gpgcheck -l --repoid=updates --download_path=/var/www/html/repos/centos/7 --downloadcomps --download-metadata &
 #---------
-rsync -avz --exclude='repo*' rsync://rsync.puppet.com/packages/yum/el/7/products/x86_64/ /var/www/html/repos/puppetlabs/el/7/products/x86_64/ &
-rsync -avz --exclude='repo*' rsync://rsync.puppet.com/packages/yum/el/7/dependencies/x86_64/ /var/www/html/repos/puppetlabs/el/7/dependencies/x86_64/ &
-rsync -avz --exclude='repo*' rsync://rsync.puppet.com/packages/yum/el/7/devel/x86_64/ /var/www/html/repos/puppetlabs/el/7/devel/x86_64/ &
-rsync -avz --exclude='repo*' rsync://rsync.puppet.com/packages/yum/el/7/PC1/x86_64/ /var/www/html/repos/puppetlabs/el/7/PC1/x86_64/ &
+reposync            -l --repoid=epel --download_path=/var/www/html/repos/centos/7 --downloadcomps --download-metadata &
 #---------
-rsync -avz --exclude='repo*' rsync://rsync.theforeman.org/yum/releases/1.16/el7/x86_64/ /var/www/html/repos/theforeman/releases/1.16/el7/x86_64/ &
-rsync -avz --exclude='repo*' rsync://rsync.theforeman.org/yum/plugins/1.16/el7/x86_64/ /var/www/html/repos/theforeman/plugins/1.16/el7/x86_64/ &
+
+#---------
+rsync -avz --delete --exclude='repodata' rsync://mirror.netcologne.de/centos/7/os/x86_64/ /var/www/html/repos/centos/7/base/ &
+#rsync -avz --delete --exclude='repodata' rsync://mirror.netcologne.de/centos/7/updates/x86_64/ /var/www/html/repos/centos/7/updates/ &
+#rsync -avz --delete --exclude='repodata' rsync://mirror.netcologne.de/centos/7/extras/x86_64/ /var/www/html/repos/centos/7/extras/ &
+#rsync -avz --delete --exclude='repodata' rsync://mirror.netcologne.de/centos/7/centosplus/x86_64/ /var/www/html/repos/centos/7/centosplus/ &
+#---------
+#rsync -avz --delete --exclude='repodata' --exclude='debug' rsync://mirror.netcologne.de/fedora-epel/7/x86_64/ /var/www/html/repos/centos/7/epel/ &
+#---------
+
+rsync -avz --delete --exclude='repodata' rsync://rsync.puppet.com/packages/yum/el/7/products/x86_64/ /var/www/html/repos/puppetlabs/el/7/products/x86_64/ &
+rsync -avz --delete --exclude='repodata' rsync://rsync.puppet.com/packages/yum/el/7/dependencies/x86_64/ /var/www/html/repos/puppetlabs/el/7/dependencies/x86_64/ &
+rsync -avz --delete --exclude='repodata' rsync://rsync.puppet.com/packages/yum/el/7/devel/x86_64/ /var/www/html/repos/puppetlabs/el/7/devel/x86_64/ &
+rsync -avz --delete --exclude='repodata' rsync://rsync.puppet.com/packages/yum/el/7/PC1/x86_64/ /var/www/html/repos/puppetlabs/el/7/PC1/x86_64/ &
+#---------
+rsync -avz --delete --exclude='repodata' rsync://rsync.theforeman.org/yum/releases/1.15/el7/x86_64/ /var/www/html/repos/theforeman/releases/1.15/el7/x86_64/ &
+rsync -avz --delete --exclude='repodata' rsync://rsync.theforeman.org/yum/plugins/1.15/el7/x86_64/ /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64/ &
 
 wait
 
-createrepo /var/www/html/repos/centos/7/os/x86_64/ &
-createrepo /var/www/html/repos/centos/7/updates/x86_64/ &
-createrepo /var/www/html/repos/centos/7/extras/x86_64/ &
-createrepo /var/www/html/repos/centos/7/centosplus/x86_64/ &
+createrepo /var/www/html/repos/centos/7/base -g /var/www/html/repos/centos/7/base/comps.xml
+createrepo /var/www/html/repos/centos/7/base/x86_64/ -g comps.xml &
+createrepo /var/www/html/repos/centos/7/updates/x86_64/ -g comps.xml &
+createrepo /var/www/html/repos/centos/7/extras/x86_64/ -g comps.xml &
+createrepo /var/www/html/repos/centos/7/centosplus/x86_64/ -g comps.xml &
 #---------
-createrepo /var/www/html/repos/epel/7/x86_64/ &
+createrepo /var/www/html/repos/centos/7/epel/x86_64/ -g comps.xml &
 #---------
 createrepo /var/www/html/repos/puppetlabs/el/7/products/x86_64/ &
 createrepo /var/www/html/repos/puppetlabs/el/7/dependencies/x86_64/ &
 createrepo /var/www/html/repos/puppetlabs/el/7/devel/x86_64/ &
 createrepo /var/www/html/repos/puppetlabs/el/7/PC1/x86_64/ &
 #---------
-createrepo /var/www/html/repos/theforeman/releases/1.16/el7/x86_64/ &
-createrepo /var/www/html/repos/theforeman/plugins/1.16/el7/x86_64/ &
+createrepo /var/www/html/repos/theforeman/releases/1.15/el7/x86_64/ &
+createrepo /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64/ &
 
-wait
-
+chown -R nginx:noboy /var/www/html/repos
 EOL
+
 log-execute "chmod +x ~/sync-mirror.sh" "ensure sync-mirror.sh is executable"
 
 log-progress-nl "setting up root cron job"

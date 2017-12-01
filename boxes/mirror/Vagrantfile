@@ -37,7 +37,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       domain.memory = 2048
       domain.cpus = 2
       domain.machine_virtual_size = 96
-      domain.nested = true
+      domain.nested = false
       domain.cpu_model = 'host-model'
     end
     machine.vm.synced_folder("./vagrant", "/vagrant", type: 'rsync')

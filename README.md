@@ -47,7 +47,7 @@ firewall-cmd --permanent --add-interface=wlp2s0 --zone=public
 * Enable masquerading on public interface and disable firewall on bridged interfaces. We use another firewall on the brdiged hosts.
 ```
 firewall-cmd --permanent --zone=public --add-masquerade
-firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-in virbr0 --physdev-is-bridged -j DENY
+firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-in virbr0 --physdev-is-bridged -j ACCEPT
 firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-in virbr1 --physdev-is-bridged -j ACCEPT
 firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -m physdev --physdev-in virbr2 --physdev-is-bridged -j ACCEPT
 

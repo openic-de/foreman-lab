@@ -16,6 +16,8 @@ sudo mkdir -p /var/lib/tftpboot/{boot,pxelinux.cfg}
 sudo yum -y install syslinux
 sudo find /var/lib/tftpboot/ -type d | xargs chmod g+s
 sudo cp /usr/share/syslinux/{pxelinux.0,menu.c32,chain.c32} /var/lib/tftpboot
-sudo chgrp -R nobody /var/lib/tftpboot
+sudo chown -R foreman-proxy:nobody /var/lib/tftpboot
+
+sudo puppet agent -t
 
 log-progress-nl "done"
