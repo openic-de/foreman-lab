@@ -104,21 +104,21 @@ rsync -avz --delete --exclude='repodata' rsync://rsync.theforeman.org/yum/plugin
 
 wait
 
-createrepo /var/www/html/repos/centos/7/base -g /var/www/html/repos/centos/7/base/comps.xml
-createrepo /var/www/html/repos/centos/7/base/x86_64/ -g comps.xml &
-createrepo /var/www/html/repos/centos/7/updates/x86_64/ -g comps.xml &
-createrepo /var/www/html/repos/centos/7/extras/x86_64/ -g comps.xml &
-createrepo /var/www/html/repos/centos/7/centosplus/x86_64/ -g comps.xml &
+createrepo -v /var/www/html/repos/centos/7/base -g /var/www/html/repos/centos/7/base/comps.xml
+createrepo -v /var/www/html/repos/centos/7/base/x86_64/ -g comps.xml &
+createrepo -v /var/www/html/repos/centos/7/updates/x86_64/ -g comps.xml &
+createrepo -v /var/www/html/repos/centos/7/extras/x86_64/ -g comps.xml &
+createrepo -v/var/www/html/repos/centos/7/centosplus/x86_64/ -g comps.xml &
 #---------
-createrepo /var/www/html/repos/centos/7/epel/x86_64/ -g comps.xml &
+createrepo -v /var/www/html/repos/centos/7/epel/x86_64/ -g comps.xml &
 #---------
-createrepo /var/www/html/repos/puppetlabs/el/7/products/x86_64/ &
-createrepo /var/www/html/repos/puppetlabs/el/7/dependencies/x86_64/ &
-createrepo /var/www/html/repos/puppetlabs/el/7/devel/x86_64/ &
-createrepo /var/www/html/repos/puppetlabs/el/7/PC1/x86_64/ &
+createrepo -v /var/www/html/repos/puppetlabs/el/7/products/x86_64/ &
+createrepo -v /var/www/html/repos/puppetlabs/el/7/dependencies/x86_64/ &
+createrepo -v /var/www/html/repos/puppetlabs/el/7/devel/x86_64/ &
+createrepo -v /var/www/html/repos/puppetlabs/el/7/PC1/x86_64/ &
 #---------
-createrepo /var/www/html/repos/theforeman/releases/1.15/el7/x86_64/ &
-createrepo /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64/ &
+createrepo -v /var/www/html/repos/theforeman/releases/1.15/el7/x86_64/ &
+createrepo -v /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64/ &
 
 chown -R nginx:noboy /var/www/html/repos
 EOL

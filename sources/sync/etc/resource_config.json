@@ -1,0 +1,55 @@
+{
+  "log_level": "info",
+  "log_file": "resource.log",
+  "environments": {
+    "eden":{
+      "host_name":"foreman-dev",
+      "host_domain":"dev.lan",
+      "web_context":"/",
+      "api_type":"foreman",
+      "api_version":2,
+      "api_username":"admin",
+      "api_password":"GxwKCc4nqmYoG8rt",
+      "api_verify_ssl":false
+    },
+    "ergo":{
+      "host_name":"foreman-prd",
+      "host_domain":"prd.lan",
+      "web_context":"/",
+      "api_type":"foreman",
+      "api_version":2,
+      "api_username":"admin",
+      "api_password":"iPgTpuh8LFLocrER",
+      "api_verify_ssl":false
+    }
+  },
+  "map": {
+    "attributes": {
+      "id": "copy-read-only",
+      "name": "copy"
+    },
+    "resource_collections": {
+      "parameters": {
+        "attributes": {
+          "value": "copy"
+        }
+      },
+      "common_parameters": {
+        "attributes": {
+          "value": "copy"
+        }
+      },
+      "hostgroups": {
+        "attributes": {
+          "name": "copy",
+          "domain_name": "rename:domain_id",
+          "environment_name": "rename:environment_id",
+          "subnet_name": "rename:subnet_id",
+          "operatingsystem_name": "rename:operatingsystem_id",
+          "puppet_proxy": "copy",
+          "puppet_ca_proxy": "copy"
+        }
+      }
+    }
+  }
+}
