@@ -1,0 +1,14 @@
+{
+  "environments": {
+    "eden":{
+      "api_username":"",
+      "api_password":"",
+      "api_verify_ssl":false
+    },
+    "ergo":{
+      "api_username":"",
+      "api_password":"",
+      "api_verify_ssl":false
+    }
+  }
+}

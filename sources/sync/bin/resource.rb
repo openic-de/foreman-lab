@@ -7,6 +7,13 @@ require 'json'
 require 'ostruct'
 require 'fileutils'
 require 'apipie-bindings'
+require 'deep_merge'
+
+class Hash
+  def to_o
+    JSON.parse to_json, object_class: OpenStruct
+  end
+end
 
 class ConfigureAndSetup
 
@@ -16,8 +23,10 @@ class ConfigureAndSetup
   @@log_part = '/log'
   @@tmp_part = '/tmp'
   @@config_file_name = 'resource_config.json'
+  @@config_auth_file_name = 'resource_config_auth.json'
+  @@log_level = 'info'
 
-  attr_accessor :model, :environment, :config, :options, :parser, :logger, :script_path, :script_name, :base_dir, :etc_dir, :bin_dir, :var_dir, :log_dir, :tmp_dir, :file_name, :file_path, :api_uri
+  attr_accessor :model, :environment, :config, :options, :parser, :logger, :script_path, :script_name, :base_dir, :etc_dir, :bin_dir, :var_dir, :log_dir, :tmp_dir, :file_name, :file_path, :config_file_name, :config_auth_file_name, :api_uri
   attr_reader :environment_name, :action_name, :resource_name, :resource_collection_name, :resource_id, :parent_resource_name, :parent_resource_collection_name, :parent_resource_id
 
   def initialize
@@ -36,12 +45,14 @@ class ConfigureAndSetup
     @log_dir = @base_dir + @@log_part
     @tmp_dir = @base_dir + @@tmp_part
 
-    parse_command_line_options()
-    parse_configuration()
+    @logger = Logger.new(STDERR)
+    @logger.level = Logger::DEBUG
+
+    init_options()
     setup_options()
+    setup_configuration()
     setup_environment()
 
-    @logger = Logger.new(STDERR)
     @logger.level = config.log_level
 
     @api_uri = "https://#{@environment.host_name}.#{@environment.host_domain}#{@environment.web_context}"
@@ -56,37 +67,51 @@ class ConfigureAndSetup
     return File.basename path
   end
 
-  def parse_configuration
-    config_json = File.read("#{@etc_dir}/#{@@config_file_name}")
-    @config = JSON.parse(config_json, object_class: OpenStruct)
-  end
-
-  def parse_command_line_options
+  def init_options
     @options = {}
 
     @parser = OptionParser.new do |option|
       option.banner = "Usage: #{@script_name} [options]"
-      option.on('-e', '--environment-name ENV', 'Environement Name') do |environment_name|
+      option.on('-e', '--environment-name ENV', 'Environement Name: ENV') do |environment_name|
         @options[:environment_name] = environment_name
       end
-      option.on('-a', '--action-name ACT', 'Action Name') do |action_name|
+      @options[:action_name] = 'index'
+      option.on('-a', '--action-name ACT', "Action Name: [ACT:#{@options[:action_name]}]") do |action_name|
         @options[:action_name] = action_name
       end
-      option.on('-r', '--resource-name NAM', 'Resource Name') do |resource_name|
+      option.on('-r', '--resource-name RES', 'Resource Name: RES') do |resource_name|
         @options[:resource_name] = resource_name
       end
-      option.on('-i', '--resource-id IDX', 'Resource Id') do |resource_id|
+      option.on('-i', '--resource-id RIX', 'Resource Index RIX') do |resource_id|
         @options[:resource_id] = resource_id
       end
-      option.on('-p', '--parent-resource-name NAM', 'Parent Resource Name') do |parent_resource_name|
+      option.on('-p', '--parent-resource-name PAR', 'Parent Resource Name PAR') do |parent_resource_name|
         @options[:parent_resource_name] = parent_resource_name
       end
-      option.on('-x', '--parent-resource-id IDX', 'Parent Resource Id') do |parent_resource_id|
+      option.on('-x', '--parent-resource-id PIX', 'Parent Resource Index PIX') do |parent_resource_id|
         @options[:parent_resource_id] = parent_resource_id
       end
+      option.on('-q', '--query_for QRY', 'Query Results using QRY') do |query_for|
+        @options[:query_for] = query_for
+      end
+      option.on('-s', '--sort-and-order-by FLST', 'Sort and Order Results by FLST') do |sort_and_order_by|
+        @options[:sort_and_order_by] = sort_and_order_by
+      end
       @options[:file_name] = false
-      option.on('-f', '--file-name [FIL]', 'File Name') do |file_name|
+      option.on('-f', '--file-name [FIL]', 'Input / Output File Name [FIL]') do |file_name|
         @options[:file_name] = file_name || true
+      end
+      @options[:config_file_name] = false
+      option.on('-c', '--config-file-name [CFIL]', "Config File Name [CFIL:#{@@config_file_name}]") do |config_file_name|
+        @options[:config_file_name] = config_file_name || true
+      end
+      @options[:config_auth_file_name] = false
+      option.on('-z', '--config-auth-file-name [AFIL]', "Config Auth File Name [AFIL:#{@@config_auth_file_name}]") do |config_auth_file_name|
+        @options[:config_auth_file_name] = config_auth_file_name || true
+      end
+      @options[:log_level] = false
+      option.on('-v', '--log-level [LLVL]', "Log Level (fatal|error|warn|info|debug) [LLVL:#{@@log_level}]") do |config_auth_file_name|
+        @options[:config_auth_file_name] = config_auth_file_name || "info"
       end
       option.on("-h", "--help", "Display this help") do
         hidden_switch = "--argument"
@@ -125,8 +150,18 @@ class ConfigureAndSetup
       @file_path = "#{@var_dir}"
       if @options[:file_name].is_a?String
         @file_name = @options[:file_name]
-      elsif @options[:file_name] == true
+      else
         @file_name = "#{@action_name}-#{@resource_name}.json"
+      end
+      if @options[:config_file_name].is_a?String
+        @config_file_name = @options[:config_file_name]
+      else
+        @config_file_name = @@config_file_name
+      end
+      if @options[:config_auth_file_name].is_a?String
+        @config_auth_file_name = @options[:config_auth_file_name]
+      else
+        @config_auth_file_name = @@config_auth_file_name
       end
     else
       puts @parser.help()
@@ -134,7 +169,35 @@ class ConfigureAndSetup
     end
   end
 
+  def setup_configuration
+    config_file_path = "#{@etc_dir}/#{@config_file_name}"
+    @logger.debug "reading config_file_path: #{config_file_path}"
+    config_json = File.read("#{config_file_path}")
+    @logger.debug "parsing config_json: #{config_json.inspect}"
+    config_os = JSON.parse(config_json, object_class: OpenStruct)
+    @logger.debug "constructing config_os: #{config_os.inspect}"
+
+    config_auth_file_path = "#{@etc_dir}/#{@config_auth_file_name}"
+    @logger.debug "reading config_auth_file_path: #{config_auth_file_path}"
+    config_auth_json = File.read("#{config_auth_file_path}")
+    @logger.debug "parsing config_auth_json: #{config_auth_json.inspect}"
+    config_auth_os = JSON.parse(config_auth_json, object_class: OpenStruct)
+    @logger.debug "constructing config_auth_os: #{config_auth_os.inspect}"
+
+    @logger.debug "environments: #{config_os.environments.inspect}"
+    environment = config_os.environments[@environment_name]
+    @logger.debug "config_auth_os.api_username: #{config_auth_os.environments[@environment_name].api_username}"
+    @logger.debug "config_auth_os.api_password: #{config_auth_os.environments[@environment_name].api_password}"
+    environment.api_username = config_auth_os.environments[@environment_name].api_username
+    environment.api_password = config_auth_os.environments[@environment_name].api_password
+    @logger.debug "environment: #{environment.inspect}"
+
+    @config = OpenStruct.new(config_os)
+    @logger.debug "config: #{@config.inspect}"
+  end
+
   def setup_environment
+    @logger.info "setup_environment: #{@environment_name} => #{config.environments[@environment_name]}"
     @environment = config.environments[@environment_name]
   end
 
@@ -199,7 +262,7 @@ class ConfigureAndSetup
             @logger.debug "map_filter: mapping attribute #{name} and setting its value to #{value}"
           end
         end
-        osresults << osresult.to_h
+        osresults << osresult.to_h()
       end
     else
       logger.warn("map_filter: results where empty - abort.")
@@ -249,41 +312,49 @@ if environment != nil
 
   api = ApipieBindings::API.new({:uri => setup.api_uri, :username => environment.api_username, :password => environment.api_password, :api_version => environment.api_version}, {:verify_ssl => environment.api_verify_ssl})
 
-  parent_resource_id_name = ":#{setup.parent_resource_name}_id"
-  logger.info("parent resource id name: #{parent_resource_id_name}")
-
+  parent_resource_id_name = String.new()
   resource_collection = api.resource(eval(":#{setup.resource_collection_name}"))
   action = resource_collection.action(eval(":#{setup.action_name}"))
 
+  logger.info "lookup route for resource (#{setup.resource_name}) / parent resource (#{setup.parent_resource_name}) association"
+  action.routes.each do |route|
+    if route.path =~ /^\/api\/#{setup.parent_resource_collection_name}\/(.*)\/#{setup.resource_collection_name}.*$/
+      parent_resource_id_name = $1
+      logger.info "found route match for resource #{setup.resource_name}: parameter name #{parent_resource_id_name} route #{route.path}"
+    end
+  end
+  logger.info("parent resource id name: #{parent_resource_id_name}")
+
   case setup.action_name
   when "index"
-    logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name} from api uri #{setup.api_uri} ..."
     logger.debug "main: result before action: #{result.inspect}"
     if options[:parent_resource_id]
+      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name} from api uri #{setup.api_uri} ..."
       result = action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :per_page=>9999)
     else
+      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name} from api uri #{setup.api_uri} ..."
       result = action.call(:per_page=>9999)
     end
     logger.debug "main: result after action: #{result.inspect}"
     result = setup.map_filter(result["results"])
   when "show"
-    logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}/#{setup.resource_id} from api uri #{setup.api_uri} ..."
     logger.debug "main: result before action: #{result.inspect}"
     if options[:parent_resource_id]
+      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}/#{setup.resource_id} from api uri #{setup.api_uri} ..."
       result = action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :id=>setup.resource_id)
     else
+      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name}/#{setup.resource_id} from api uri #{setup.api_uri} ..."
       result = action.call(:id=>setup.resource_id)
     end
     logger.debug "main: result after action: #{result.inspect}"
     result = setup.map_filter(result)
   when "create"
-    logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name} from api uri #{setup.api_uri} ..."
     setup.get_json_from_file.each do |entry|
       if options[:parent_resource_id]
-        logger.info "create new resource parent_resource_id_name: #{parent_resource_id_name} with entry: #{entry}"
+        logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}: #{parent_resource_id_name} => #{setup.parent_resource_id}, entry => #{entry} from api uri #{setup.api_uri} ..."
         action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, eval(":#{setup.resource_name}")=>entry)
       else
-        logger.info "create new resource: #{setup.resource_name} with entry: #{entry}"
+        logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name} #{setup.resource_name} => #{entry} from api uri #{setup.api_uri} ..."
         action.call(eval(":#{setup.resource_name}")=>entry)
       end
     end
@@ -303,11 +374,12 @@ if environment != nil
   when "destroy"
     setup.get_json_from_file.each do |entry|
       begin
-        logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}/#{entry["name"]} from api uri #{setup.api_uri} ..."
         if options[:parent_resource_id]
-          logger.info action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :id=>entry["name"])
+          logger.info "#{setup.environment_name}: #{setup.action_name}@/#{parent_resource_id_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}: id => #{entry["name"]} from api uri #{setup.api_uri} ..."
+          action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :id=>entry["name"])
         else
-          logger.info action.call(:id=>entry["name"])
+          logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name}: id => #{entry["name"]} from api uri #{setup.api_uri} ..."
+          action.call(:id=>entry["name"])
         end
       rescue StandardError => error
         logger.error "errror: #{error}"

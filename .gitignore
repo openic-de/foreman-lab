@@ -1,0 +1,6 @@
+# Created by .ignore support plugin (hsz.mobi)
+/sources/sync/bin/setup.rb
+/sources/sync/bin/sync.rb
+/sources/sync/etc/resource_config_auth.json
+/sources/sync/var/
+/sources/sync/tmp/

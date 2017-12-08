@@ -7,20 +7,14 @@
       "host_domain":"dev.lan",
       "web_context":"/",
       "api_type":"foreman",
-      "api_version":2,
-      "api_username":"admin",
-      "api_password":"GxwKCc4nqmYoG8rt",
-      "api_verify_ssl":false
+      "api_version":2
     },
     "ergo":{
       "host_name":"foreman-prd",
       "host_domain":"prd.lan",
       "web_context":"/",
       "api_type":"foreman",
-      "api_version":2,
-      "api_username":"admin",
-      "api_password":"iPgTpuh8LFLocrER",
-      "api_verify_ssl":false
+      "api_version":2
     }
   },
   "map": {
