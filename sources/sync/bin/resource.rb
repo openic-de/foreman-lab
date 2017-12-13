@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -d
+#!/usr/bin/env ruby -d
 
 require 'pp'
 require 'logger'
@@ -26,7 +26,7 @@ class ConfigureAndSetup
   @@config_auth_file_name = 'resource_config_auth.json'
   @@log_level = 'info'
 
-  attr_accessor :model, :environment, :config, :options, :parser, :logger, :script_path, :script_name, :base_dir, :etc_dir, :bin_dir, :var_dir, :log_dir, :tmp_dir, :file_name, :file_path, :config_file_name, :config_auth_file_name, :api_uri
+  attr_accessor :model, :environment, :config, :options, :parser, :logger, :script_path, :script_name, :base_dir, :etc_dir, :bin_dir, :var_dir, :log_dir, :tmp_dir, :file_name, :file_path, :config_file_name, :config_auth_file_name, :query, :order, :api_uri, :resource_json
   attr_reader :environment_name, :action_name, :resource_name, :resource_collection_name, :resource_id, :parent_resource_name, :parent_resource_collection_name, :parent_resource_id
 
   def initialize
@@ -46,7 +46,7 @@ class ConfigureAndSetup
     @tmp_dir = @base_dir + @@tmp_part
 
     @logger = Logger.new(STDERR)
-    @logger.level = Logger::DEBUG
+    @logger.level = Logger::INFO
 
     init_options()
     setup_options()
@@ -70,8 +70,47 @@ class ConfigureAndSetup
   def init_options
     @options = {}
 
+    # if -p => -x
+    # if -a == index => -e, -r
+    # if -a == index ~> -e, -r, -p=>-x, -q, -o, -f
+    # if -a == show => -e, -r, -i|-f
+    # if -a == show ~> -e, -r, -i|-f, -p=>-x
+
+    # if -a == destroy => -e, -r, -i|-f
+    # if -a == destroy ~> -e, -r, -i|-f, -p=>-x
+    # if -a == create => -e, -r, -i|-f
+    # if -a == create ~> -e, -r, -i|-f, -p=>-x
+    # if -a == update => -e, -r, -i|-f
+    # if -a == update ~> -e, -r, -i|-f, -p=>-x
+
     @parser = OptionParser.new do |option|
       option.banner = "Usage: #{@script_name} [options]"
+      option.separator "\toptional paramter: (-[PARAM]) &| (-[PARAM] -[PARAM] ...)"
+      option.separator "\tplaceholder: [PARAM] -> has to be replaced by real VALUE"
+      option.separator "\tplaceholder with value: [PARAM:VALUE] -> valid if PARAM equals VALUE"
+      option.separator ""
+      option.separator "\tFIL: default filename is generated from the input parameters if left empty"
+      option.separator "\t   - read actions (index, show): results are written to the json file FIL"
+      option.separator "\t   - write actions (create, update, destroy): results are read from the json file FIL and processed"
+      option.separator ""
+      option.separator "actions:"
+      option.separator ""
+      option.separator "\tindex: list resource of type RES, optionally filter and order results (QRY, ORD) and save the resulting json to the file FIL"
+      option.separator "\t\t#{@script_name} -e [ENV] -a [ACT:index] -r [RES] (-p [PAR] -x [PIX]) (-q [QRY]) (-o [ORD]) (-f ([FIL]))"
+      option.separator ""
+      option.separator "\tshow: show resource of type RES, matching the id RIX and save the resulting json to the file FIL"
+      option.separator "\t\t#{@script_name} -e [ENV] -a [ACT:show] -r [RES] [-i [RIX] | -f ([FIL])] (-p [PAR] -x [PIX])"
+      option.separator ""
+      option.separator "\tdestroy: destroy resource of type RES matching the id RIX"
+      option.separator "\t\t#{@script_name} -e [ENV] -a [ACT:destroy] -r [RES] -i [RIX] | -f ([FIL]) (-p [PAR] -x [PIX])"
+      option.separator ""
+      option.separator "\tcreate: create resource of type RES for each entry in the json file FIL"
+      option.separator "\t\t#{@script_name}-e [ENV] -a [ACT:create] -r [RES] -i [RIX] | -f ([FIL]) (-p [PAR] -x [PIX])"
+      option.separator ""
+      option.separator "\tupdate: update resource of type RES optionally matching the id RIX and updating each entry from the json file FIL"
+      option.separator "\t\t#{script_name} -e [ENV] -a [ACT:update] -r [RES] -i [RIX] | -f ([FIL]) (-p [PAR] -x [PIX])"
+      option.separator ""
+
       option.on('-e', '--environment-name ENV', 'Environement Name: ENV') do |environment_name|
         @options[:environment_name] = environment_name
       end
@@ -91,11 +130,11 @@ class ConfigureAndSetup
       option.on('-x', '--parent-resource-id PIX', 'Parent Resource Index PIX') do |parent_resource_id|
         @options[:parent_resource_id] = parent_resource_id
       end
-      option.on('-q', '--query_for QRY', 'Query Results using QRY') do |query_for|
-        @options[:query_for] = query_for
+      option.on('-q', '--query QRY', 'Query using QRY') do |query|
+        @options[:query] = query
       end
-      option.on('-s', '--sort-and-order-by FLST', 'Sort and Order Results by FLST') do |sort_and_order_by|
-        @options[:sort_and_order_by] = sort_and_order_by
+      option.on('-o', '--order ORD', 'Order by ORD') do |order|
+        @options[:order] = order
       end
       @options[:file_name] = false
       option.on('-f', '--file-name [FIL]', 'Input / Output File Name [FIL]') do |file_name|
@@ -147,6 +186,12 @@ class ConfigureAndSetup
       if @options[:parent_resource_id]
         @parent_resource_id = @options[:parent_resource_id]
       end
+      if @options[:query]
+        @query = @options[:query]
+      end
+      if @options[:order]
+        @order = @options[:order]
+      end
       @file_path = "#{@var_dir}"
       if @options[:file_name].is_a?String
         @file_name = @options[:file_name]
@@ -197,7 +242,7 @@ class ConfigureAndSetup
   end
 
   def setup_environment
-    @logger.info "setup_environment: #{@environment_name} => #{config.environments[@environment_name]}"
+    @logger.debug "setup_environment: #{@environment_name} => #{config.environments[@environment_name]}"
     @environment = config.environments[@environment_name]
   end
 
@@ -205,7 +250,7 @@ class ConfigureAndSetup
 
   end
 
-  def map_filter results
+  def map_filter results, readonly=false
     osresults = []
     osresult = {}
 
@@ -252,9 +297,14 @@ class ConfigureAndSetup
             attribute_action = mapped_attributes[eval(":#{name}")]
             @logger.debug "map_filter: attribute #{name} action #{attribute_action}"
             case attribute_action
-              when /^(copy.*)$/
+              when /^(copy)$/
                 @logger.debug "map_filter: $1 attribute #{name} = #{value}"
                 osresult[name] = value
+              when /^(copy-read-only)$/
+                if readonly == false
+                  @logger.debug "map_filter: $1 attribute #{name} = #{value}"
+                  osresult[name] = value
+                end
               when /^(rename):(.*)/
                 @logger.debug "map_filter: $1 attribute from #{name} to #{$2} = #{value}"
                 osresult[$2] = value
@@ -295,20 +345,20 @@ options = setup.options
 config = setup.config
 environment = setup.environment
 
-logger.info("minimum configuration options meet- continue")
+logger.debug("minimum configuration options meet- continue")
 if environment != nil
-  logger.info("environment configuration exists and environment name #{setup.environment_name} matched configured environment - continue")
+  logger.debug("environment configuration exists and environment name #{setup.environment_name} matched configured environment - continue")
 
   resources = config.map.resource_collections.marshal_dump
 
-  logger.info("environment_name: #{setup.environment_name}")
-  logger.info("action_name: #{setup.action_name}")
-  logger.info("resource_name: #{setup.resource_name}")
-  logger.info("resource_collection_name: #{setup.resource_collection_name}")
-  logger.info("resource_id: #{setup.resource_id}")
-  logger.info("parent_resource_name: #{setup.parent_resource_name}")
-  logger.info("parent_resource_collection_name: #{setup.parent_resource_collection_name}")
-  logger.info("parent_resource_id: #{setup.parent_resource_id}")
+  logger.debug("environment_name: #{setup.environment_name}")
+  logger.debug("action_name: #{setup.action_name}")
+  logger.debug("resource_name: #{setup.resource_name}")
+  logger.debug("resource_collection_name: #{setup.resource_collection_name}")
+  logger.debug("resource_id: #{setup.resource_id}")
+  logger.debug("parent_resource_name: #{setup.parent_resource_name}")
+  logger.debug("parent_resource_collection_name: #{setup.parent_resource_collection_name}")
+  logger.debug("parent_resource_id: #{setup.parent_resource_id}")
 
   api = ApipieBindings::API.new({:uri => setup.api_uri, :username => environment.api_username, :password => environment.api_password, :api_version => environment.api_version}, {:verify_ssl => environment.api_verify_ssl})
 
@@ -316,87 +366,98 @@ if environment != nil
   resource_collection = api.resource(eval(":#{setup.resource_collection_name}"))
   action = resource_collection.action(eval(":#{setup.action_name}"))
 
-  logger.info "lookup route for resource (#{setup.resource_name}) / parent resource (#{setup.parent_resource_name}) association"
+  logger.debug "lookup route for resource (#{setup.resource_name}) / parent resource (#{setup.parent_resource_name}) association"
   action.routes.each do |route|
     if route.path =~ /^\/api\/#{setup.parent_resource_collection_name}\/(.*)\/#{setup.resource_collection_name}.*$/
       parent_resource_id_name = $1
-      logger.info "found route match for resource #{setup.resource_name}: parameter name #{parent_resource_id_name} route #{route.path}"
+      logger.debug "found route match for resource #{setup.resource_name}: parameter name #{parent_resource_id_name} route #{route.path}"
     end
   end
-  logger.info("parent resource id name: #{parent_resource_id_name}")
+  logger.debug("parent resource id name: #{parent_resource_id_name}")
+
+  parameter = {}
+  path = ""
+
+  if options[:query]
+    parameter[:query] = options[:query]
+  end
+  if options[:order]
+    parameter[:order] = options[:order]
+  end
+  if options[:parent_resource_id]
+    parameter[eval(parent_resource_id_name)] = setup.parent_resource_id
+    parameter[:per_page] = 9999
+    path += "@#{setup.action_name}:/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}"
+  else
+    parameter = {:per_page=>9999}
+    path += "@#{setup.action_name}:/#{setup.resource_collection_name}"
+  end
+  if options[:resource_id]
+    parameter[:id] = setup.resource_id
+    path += "/#{setup.resource_id}"
+  end
+
+  logger.debug "#{setup.environment_name}: #{path} api_uri; #{setup.api_uri} ..."
 
   case setup.action_name
   when "index"
     logger.debug "main: result before action: #{result.inspect}"
-    if options[:parent_resource_id]
-      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name} from api uri #{setup.api_uri} ..."
-      result = action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :per_page=>9999)
-    else
-      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name} from api uri #{setup.api_uri} ..."
-      result = action.call(:per_page=>9999)
-    end
+    result = action.call(parameter)
     logger.debug "main: result after action: #{result.inspect}"
     result = setup.map_filter(result["results"])
   when "show"
     logger.debug "main: result before action: #{result.inspect}"
-    if options[:parent_resource_id]
-      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}/#{setup.resource_id} from api uri #{setup.api_uri} ..."
-      result = action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :id=>setup.resource_id)
-    else
-      logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name}/#{setup.resource_id} from api uri #{setup.api_uri} ..."
-      result = action.call(:id=>setup.resource_id)
-    end
+    parameter[:id] = setup.resource_id
+    result = action.call(parameter)
     logger.debug "main: result after action: #{result.inspect}"
     result = setup.map_filter(result)
   when "create"
+    logger.debug "main: result before action: #{result.inspect}"
     setup.get_json_from_file.each do |entry|
-      if options[:parent_resource_id]
-        logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}: #{parent_resource_id_name} => #{setup.parent_resource_id}, entry => #{entry} from api uri #{setup.api_uri} ..."
-        action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, eval(":#{setup.resource_name}")=>entry)
-      else
-        logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name} #{setup.resource_name} => #{entry} from api uri #{setup.api_uri} ..."
-        action.call(eval(":#{setup.resource_name}")=>entry)
-      end
+      path += ":#{setup.resource_name}: #{entry}"
+      parameter[eval(":#{setup.resource_name}")] = entry
+      action.call(parameter)
     end
+    logger.debug "main: result after action: #{result.inspect}"
   when "update"
-    logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.parent_resource_collection_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name} from api uri #{setup.api_uri} ..."
+    logger.debug "main: result before action: #{result.inspect}"
     setup.get_json_from_file.each do |entry|
       resource_id = resource_collection.action(:show).call(eval(parent_resource_id_name)=>setup.parent_resource_id, :id=>entry["name"])["id"]
-      logger.info "resource_id: #{resource_id}"
-      if options[:parent_resource_id]
-        logger.info "update resource: #{parent_resource_id_name} = #{setup.parent_resource_id} and id #{resource_id} and :#{setup.resource_name} = #{entry}"
-        action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :id=>resource_id, eval(":#{setup.resource_name}")=>entry)
-      else
-        logger.info "update resource: #{setup.resource_name} = #{entry}"
-        action.call(:id=>resource_id, eval(":#{setup.resource_name}")=>entry)
-      end
+      logger.debug "resource_id: #{resource_id}"
+      path += ":#{setup.resource_name}: #{entry}"
+      parameter[:id] = resource_id
+      parameter[eval(":#{setup.resource_name}")] = entry
+      action.call(parameter)
     end
+    logger.debug "main: result after action: #{result.inspect}"
   when "destroy"
+    logger.debug "main: result before action: #{result.inspect}"
     setup.get_json_from_file.each do |entry|
       begin
-        if options[:parent_resource_id]
-          logger.info "#{setup.environment_name}: #{setup.action_name}@/#{parent_resource_id_name}/#{setup.parent_resource_id}/#{setup.resource_collection_name}: id => #{entry["name"]} from api uri #{setup.api_uri} ..."
-          action.call(eval(parent_resource_id_name)=>setup.parent_resource_id, :id=>entry["name"])
-        else
-          logger.info "#{setup.environment_name}: #{setup.action_name}@/#{setup.resource_collection_name}: id => #{entry["name"]} from api uri #{setup.api_uri} ..."
-          action.call(:id=>entry["name"])
-        end
+        path += ": id: #{entry["name"]}"
+        parameter[:id] = entry["name"]
+        action.call(parameter)
       rescue StandardError => error
         logger.error "errror: #{error}"
       end
     end
+    logger.debug "main: result after action: #{result.inspect}"
   else
     logger.error "unknown action #{action_name} - valid actions are index, show, create, update, destroy"
   end
 
   if result != nil && result.include?("results")
-    result = setup.map_filter(result["results"])
+    if setup.action_name == "create"
+      result = setup.map_filter(result["results"], true)
+    else
+      result = setup.map_filter(result["results"])
+    end
   end
   logger.debug "main: result after map_filter: #{result.inspect}"
 
-  logger.info("prepare the write of the result to file #{setup.file_path}/#{setup.file_name}")
+  logger.debug("prepare the write of the result to file #{setup.file_path}/#{setup.file_name}")
   if setup.file_path && !(options[:action_name] == "create") && !(options[:action_name] == "update") && !(options[:action_name] == "destroy")
-    logger.info("writing result to file #{setup.var_dir}/#{setup.file_name}")
+    logger.debug("writing result to file #{setup.var_dir}/#{setup.file_name}")
     file = File.new("#{setup.file_path}/#{setup.file_name}", "w")
     begin
       file.write(result.to_json)
@@ -406,7 +467,7 @@ if environment != nil
       file.close
     end
   end
-  logger.info(result.to_json)
+  logger.debug(result.to_json)
 else
   logger.error "environemnt #{env_name} not found, please check the configuration."
 end

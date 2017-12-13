@@ -1,5 +1,5 @@
 {
-  "log_level": "info",
+  "log_level": "debug",
   "log_file": "resource.log",
   "environments": {
     "eden":{
@@ -42,6 +42,32 @@
           "operatingsystem_name": "rename:operatingsystem_id",
           "puppet_proxy": "copy",
           "puppet_ca_proxy": "copy"
+        }
+      }
+    }
+  },
+  "action": {
+    "export-eden": {
+      "options": {
+        "environment": "eden",
+        "host_name": "#{resource_id}"
+      },
+      "resources": {
+        "common_parameter": {
+          "index": {
+            "file_name": "export.common_parameter.index-common_parameter.json"
+          }
+        },
+        "hostgroup": {
+          "index": {
+            "selctor": "#{host_hostgroups_selctor(#{resource_id})}",
+            "file_name": "export.host.#{resource_id}.index-hostgroups.json"
+          }
+        },
+        "host": {
+          "index": {
+            "file_name": "export.host.${resource_id}.index-host.json"
+          }
         }
       }
     }
