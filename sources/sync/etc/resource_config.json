@@ -23,6 +23,11 @@
       "name": "copy"
     },
     "resource_collections": {
+      "host": {
+        "attributes": {
+          "*": "copy"
+        }
+      },
       "parameters": {
         "attributes": {
           "value": "copy"

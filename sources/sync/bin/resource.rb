@@ -141,11 +141,11 @@ class ConfigureAndSetup
         @options[:file_name] = file_name || true
       end
       @options[:config_file_name] = false
-      option.on('-c', '--config-file-name [CFIL]', "Config File Name [CFIL:#{@@config_file_name}]") do |config_file_name|
+      option.on('-c', '--config-file-name [CFIL]', "Config File Name [CFIL:etc/#{@@config_file_name}]") do |config_file_name|
         @options[:config_file_name] = config_file_name || true
       end
       @options[:config_auth_file_name] = false
-      option.on('-z', '--config-auth-file-name [AFIL]', "Config Auth File Name [AFIL:#{@@config_auth_file_name}]") do |config_auth_file_name|
+      option.on('-z', '--config-auth-file-name [AFIL]', "Config Auth File Name [AFIL:etc/#{@@config_auth_file_name}]") do |config_auth_file_name|
         @options[:config_auth_file_name] = config_auth_file_name || true
       end
       @options[:log_level] = false
