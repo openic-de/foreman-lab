@@ -14,9 +14,9 @@ else
   lanname="$(hostname -d)"
 
   if [ ${lanname} == "prd.lan" ]; then
-    hostip="172.16.10.10"
+    hostip="192.168.10.10"
   else
-    hostip="172.16.20.10"
+    hostip="192.168.20.10"
   fi
 
   sudo cat >/etc/hosts <<EOL
@@ -28,7 +28,26 @@ EOL
   log-execute "sudo yum -y install gpg yum-utils wget memcached" "installing gpg yum-utils wget memcached"
   log-execute "sudo yum-config-manager --enable rhel-7-server-optional-rpms rhel-server-rhscl-7-rpms" "enabling red hat optional repository"
 
-  log-execute "sudo yum clean all && sudo yum -y update && sudo -y upgrade" "updating system"
+  log-execute "sudo yum clean all" "cleaning package mangement caches"
+  log-execute "sudo yum -y update" "updating system"
+  log-execute "sudo yum -y upgrade" "upgrading system"
+  log-execute "sudo timedatectl set-timezone Europe/Berlin" "setting timezone to Europe/Berlin"
+  log-execute "sudo yum -y install ntp" "installing ntp"
+  log-execute "sudo ntpdate de.pool.ntp.org" "setting ntp server de.pool.ntp.org"
+  sudo cat >/etc/ntp.conf <<EOL
+server 0.de.pool.ntp.org
+server 1.de.pool.ntp.org
+server 2.de.pool.ntp.org
+server 3.de.pool.ntp.org
+EOL
+  log-execute "sudo systemctl restart ntpd" "restarting ntpd service"
+  log-execute "sudo systemctl enable ntpd" "enabling ntpd service on boot"
+  log-execute "sudo rpm -ivh https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm" "installing puppet labs collection repository"
+  log-execute "sudo yum -y install puppetserver" "installing puppetserver"
+  log-execute "sudo systemctl start puppetserver" "starting puppetserver"
+  log-execute "sudo systemctl enable puppetserver" "enabling puppetserver"
+  log-execute "sudo yum -y install puppet-agent" "installing puppet-agent"
+  log-execute "sudo /opt/puppetlabs/bin/puppet resource service puppet ensure=running enable=true" "starting puppet agent"
   log-execute "sudo yum -y install foreman-installer" "installing foreman-installer"
 
   log-execute "sudo systemctl enable memcached" "memcached: enabling service"
@@ -40,9 +59,10 @@ EOL
   log-execute "sudo firewall-cmd --permanent --add-port=69/udp" "firewalld: add-port tftp server"
   log-execute "sudo firewall-cmd --permanent --add-port=80/tcp" "firewalld: add-port http server"
   log-execute "sudo firewall-cmd --permanent --add-port=443/tcp" "firewalld: add-port https server"
+  log-execute "sudo firewall-cmd --permanent --add-port=3000/tcp" "firewalld: add-port webbricket service"
   log-execute "sudo firewall-cmd --permanent --add-port=5900-5930/tcp" "firewalld: add-port vnc server consoles"
   log-execute "sudo firewall-cmd --permanent --add-port=8140/tcp" "firewalld: add-port  puppet master server"
-  sudo firewall-cmd --permanent --zone=public --add-rich-rule='rule family="ipv4" source address="'${hostip}'" port protocol="tcp" port="8443" accept' # "firewalld: adding port smart proxy for access from foreman"
+  log-execute "sudo firewall-cmd --permanent --add-port=8443/tcp" "firewalld: add-port  smart proxy"
   log-execute "sudo firewall-cmd --reload" "firewalld: reloading"
 
   log-execute-show-output "sudo foreman-installer --enable-foreman --enable-foreman-proxy --enable-puppet --enable-foreman-cli --enable-foreman-plugin-ansible --enable-foreman-plugin-bootdisk --enable-foreman-plugin-memcache --enable-foreman-plugin-monitoring --enable-foreman-plugin-tasks --enable-foreman-plugin-setup --enable-foreman-plugin-templates --enable-foreman-compute-libvirt" "executing foreman-installer"

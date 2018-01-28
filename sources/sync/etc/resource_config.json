@@ -65,7 +65,7 @@
         },
         "hostgroup": {
           "index": {
-            "selctor": "#{host_hostgroups_selctor(#{resource_id})}",
+            "selctor": "#{host_hostgroups_selector(#{resource_id})}",
             "file_name": "export.host.#{resource_id}.index-hostgroups.json"
           }
         },

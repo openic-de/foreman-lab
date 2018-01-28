@@ -83,14 +83,14 @@ gpgkey=http://mirror/puppetlabs/RPM-GPG-KEY-puppetlabs
 enabled=0
 gpgcheck=1
 
-[puppetlabs-pc1]
-name=Puppet Labs PC1 el 7 - x86_64
-baseurl=http://mirror/puppetlabs/el/7/PC1/x86_64
-gpgkey=http://mirror/puppetlabs/RPM-GPG-KEY-puppetlabs
-       http://mirror/puppetlabs/RPM-GPG-KEY-puppet
-       http://mirror/puppetlabs/RPM-GPG-KEY-reductive
-enabled=1
-gpgcheck=1
+#[puppetlabs-pc1]
+#name=Puppet Labs PC1 el 7 - x86_64
+#baseurl=http://mirror/puppetlabs/el/7/PC1/x86_64
+#gpgkey=http://mirror/puppetlabs/RPM-GPG-KEY-puppetlabs
+#       http://mirror/puppetlabs/RPM-GPG-KEY-puppet
+#       http://mirror/puppetlabs/RPM-GPG-KEY-reductive
+#enabled=1
+#gpgcheck=1
 
 [puppetlabs-products-source]
 name=Puppet Labs Products El 7 - x86_64 - Source
@@ -120,48 +120,48 @@ gpgkey=http://mirror/puppetlabs/RPM-GPG-KEY-puppetlabs
 enabled=0
 gpgcheck=1
 
-[puppetlabs-pc1-source]
-name=Puppet Labs PC1 Repository el 7 - Source
-baseurl=http://yum.puppetlabs.com/el/7/PC1/SRPMS
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs-PC1
-       file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppet-PC1
-failovermethod=priority
-enabled=0
-gpgcheck=1
+#[puppetlabs-pc1-source]
+#name=Puppet Labs PC1 Repository el 7 - Source
+#baseurl=http://yum.puppetlabs.com/el/7/PC1/SRPMS
+#gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs-PC1
+#       file:///etc/pki/rpm-gpg/RPM-GPG-KEY-puppet-PC1
+#failovermethod=priority
+#enabled=0
+#gpgcheck=1
 EOL
 
 log-progress-nl "setting up foreman repository"
 sudo cat >/etc/yum.repos.d/foreman.repo <<EOL
 [foreman]
-name=Foreman 1.15
-baseurl=http://mirror/theforeman/releases/1.15/el7/x86_64
+name=Foreman 1.16
+baseurl=http://mirror/theforeman/releases/1.16/el7/x86_64
 enabled=1
 gpgcheck=1
-gpgkey=http://mirror/theforeman/releases/1.15/RPM-GPG-KEY-foreman
+gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman-1.16
 
 [foreman-source]
-name=Foreman 1.15 - source
-baseurl=http://mirror/theforeman/releases/1.15/el7/source
+name=Foreman 1.16 - source
+baseurl=http://mirror/theforeman/releases/1.16/el7/source
 enabled=0
 gpgcheck=1
-gpgkey=http://mirror/theforeman/releases/1.15/RPM-GPG-KEY-foreman
+gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman-1.16
 EOL
 
 log-progress-nl "setting up foreman-plugins repository"
 sudo cat >/etc/yum.repos.d/foreman-plugins.repo <<EOL
 [foreman-plugins]
-name=Foreman plugins 1.15
-baseurl=http://mirror/theforeman/plugins/1.15/el7/x86_64
+name=Foreman plugins 1.16
+baseurl=http://mirror/theforeman/plugins/1.16/el7/x86_64
 enabled=1
 gpgcheck=0
-gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman
+gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman-1.16
 
 [foreman-plugins-source]
-name=Foreman plugins 1.15 - source
-baseurl=http://mirror/theforeman/plugins/1.15/el7/source
+name=Foreman plugins 1.16 - source
+baseurl=http://mirror/theforeman/plugins/1.16/el7/source
 enabled=0
 gpgcheck=1
-gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman
+gpgkey=http://mirror/theforeman/RPM-GPG-KEY-foreman-1.16
 EOL
 
 log-progress-nl "done"

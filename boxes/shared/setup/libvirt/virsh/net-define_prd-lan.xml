@@ -3,5 +3,5 @@
   <forward mode="route"/>
   <bridge name='virbr1' stp='on' delay='0' />
   <domain name='prd.lan' localOnly='yes'/>
-  <ip address='172.16.10.1' netmask='255.255.255.0' />
+  <ip address='192.168.10.1' netmask='255.255.255.0' />
 </network>

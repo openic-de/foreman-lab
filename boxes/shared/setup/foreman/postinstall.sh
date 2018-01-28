@@ -18,6 +18,11 @@ sudo find /var/lib/tftpboot/ -type d | xargs chmod g+s
 sudo cp /usr/share/syslinux/{pxelinux.0,menu.c32,chain.c32} /var/lib/tftpboot
 sudo chown -R foreman-proxy:nobody /var/lib/tftpboot
 
-sudo puppet agent -t
+# resize pv, vg and lv
+# cfdisk /dev/vda delete lvm and recreate over howle space
+# use cfdisk to write the partition table and reboot
+# pvresize /dev/vda3
+#
+puppet agent -t
 
 log-progress-nl "done"

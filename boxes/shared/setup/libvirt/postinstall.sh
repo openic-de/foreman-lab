@@ -55,9 +55,9 @@ hostname="$(hostname -s)"
 lanname="$(hostname -d)"
 
 if [ ${lanname} == "prd.lan" ]; then
-  hostip="172.16.10.10"
+  hostip="192.168.10.10"
 else
-  hostip="172.16.20.10"
+  hostip="192.168.20.10"
 fi
 
 cat >/etc/sysconfig/network-scripts/ifcfg-br0 <<EOL

@@ -12,7 +12,7 @@ log-execute "sudo yum -y install git createrepo firewalld rsync nginx" "installi
 log-execute "mkdir -p /var/www/html/repos/centos/7/{os/x86_64,updates/x86_64,extras/x86_64,centosplus/x86_64}" "setting up centos repository directories"
 log-execute "mkdir -p /var/www/html/repos/epel/7/x86_64" "setting up epel repository directories"
 log-execute "mkdir -p /var/www/html/repos/puppetlabs/el/7/{products/x86_64,dependencies/x86_64,devel/x86_64,PC1/x86_64}" "setting up puppetlabs repository directories"
-log-execute "mkdir -p /var/www/html/repos/theforeman/{releases/1.15/el7/x86_64,plugins/1.15/el7/x86_64}" "setting up foreman repository directories"
+log-execute "mkdir -p /var/www/html/repos/theforeman/{releases/1.15/el7/x86_64,plugins/1.15/el7/x86_64,releases/1.16/el7/x86_64,plugins/1.16/el7/x86_64}" "setting up foreman repository directories"
 
 log-execute "createrepo /var/www/html/repos/centos/7/os/x86_64/" "createrepo centos os"
 log-execute "createrepo /var/www/html/repos/centos/7/updates/x86_64/" "createrepo centos updates"
@@ -23,8 +23,10 @@ log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/products/x86_64" "cr
 log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/dependencies/x86_64" "createrepo puppetlabs dependencies"
 log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/devel/x86_64" "createrepo puppetlabs devel"
 log-execute "createrepo /var/www/html/repos/puppetlabs/el/7/PC1/x86_64" "createrepo puppetlabs PC1"
-log-execute "createrepo /var/www/html/repos/theforeman/releases/1.15/el7/x86_64" "createrepo puppetlabs foreman releases"
-log-execute "createrepo /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64" "createrepo puppetlabs foreman plugins"
+log-execute "createrepo /var/www/html/repos/theforeman/releases/1.15/el7/x86_64" "createrepo puppetlabs foreman 1.15 releases"
+log-execute "createrepo /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64" "createrepo puppetlabs foreman 1.15 plugins"
+log-execute "createrepo /var/www/html/repos/theforeman/releases/1.16/el7/x86_64" "createrepo puppetlabs foreman 1.16 releases"
+log-execute "createrepo /var/www/html/repos/theforeman/plugins/1.16/el7/x86_64" "createrepo puppetlabs foreman 1.16 plugins"
 
 log-execute "mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig" "backup nginx configuration"
 
@@ -101,6 +103,8 @@ rsync -avz --delete --exclude='repodata' rsync://rsync.puppet.com/packages/yum/e
 #---------
 rsync -avz --delete --exclude='repodata' rsync://rsync.theforeman.org/yum/releases/1.15/el7/x86_64/ /var/www/html/repos/theforeman/releases/1.15/el7/x86_64/ &
 rsync -avz --delete --exclude='repodata' rsync://rsync.theforeman.org/yum/plugins/1.15/el7/x86_64/ /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64/ &
+rsync -avz --delete --exclude='repodata' rsync://rsync.theforeman.org/yum/releases/1.16/el7/x86_64/ /var/www/html/repos/theforeman/releases/1.16/el7/x86_64/ &
+rsync -avz --delete --exclude='repodata' rsync://rsync.theforeman.org/yum/plugins/1.16/el7/x86_64/ /var/www/html/repos/theforeman/plugins/1.16/el7/x86_64/ &
 
 wait
 
@@ -119,6 +123,8 @@ createrepo -v /var/www/html/repos/puppetlabs/el/7/PC1/x86_64/ &
 #---------
 createrepo -v /var/www/html/repos/theforeman/releases/1.15/el7/x86_64/ &
 createrepo -v /var/www/html/repos/theforeman/plugins/1.15/el7/x86_64/ &
+createrepo -v /var/www/html/repos/theforeman/releases/1.16/el7/x86_64/ &
+createrepo -v /var/www/html/repos/theforeman/plugins/1.16/el7/x86_64/ &
 
 chown -R nginx:noboy /var/www/html/repos
 EOL
